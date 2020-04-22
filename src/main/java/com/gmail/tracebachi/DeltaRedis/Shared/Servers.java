@@ -19,8 +19,7 @@ package com.gmail.tracebachi.DeltaRedis.Shared;
 /**
  * Created by Trace Bachi (tracebachi@gmail.com, BigBossZee) on 12/10/15.
  */
-public interface Servers
-{
+public interface Servers {
     /**
      * Channel name for all Spigot servers.
      */

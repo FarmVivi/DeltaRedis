@@ -19,8 +19,7 @@ package com.gmail.tracebachi.DeltaRedis.Shared;
 /**
  * Created by Trace Bachi (tracebachi@gmail.com, BigBossZee) on 11/27/15.
  */
-public interface DeltaRedisInterface
-{
+public interface DeltaRedisInterface {
     /**
      * Handles a DeltaRedis message to the server.
      *

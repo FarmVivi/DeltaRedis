@@ -24,18 +24,15 @@ import com.lambdaworks.redis.pubsub.RedisPubSubListener;
 /**
  * Created by Trace Bachi (tracebachi@gmail.com) on 10/18/15.
  */
-public class DRPubSubListener implements RedisPubSubListener<String, String>, Shutdownable
-{
+public class DRPubSubListener implements RedisPubSubListener<String, String>, Shutdownable {
     private DeltaRedisInterface plugin;
 
-    public DRPubSubListener(DeltaRedisInterface plugin)
-    {
+    public DRPubSubListener(DeltaRedisInterface plugin) {
         this.plugin = plugin;
     }
 
     @Override
-    public void shutdown()
-    {
+    public void shutdown() {
         this.plugin = null;
     }
 
@@ -50,22 +47,18 @@ public class DRPubSubListener implements RedisPubSubListener<String, String>, Sh
      * @param channel         Ignored as the listener is only registered to explicit channels.
      * @param completeMessage Complete received message.
      */
-    public void message(String channel, String completeMessage)
-    {
+    public void message(String channel, String completeMessage) {
         String[] messageParts = SplitPatterns.DELTA.split(completeMessage, 3);
 
-        if(messageParts.length == 3)
-        {
+        if (messageParts.length == 3) {
             plugin.debug("Received message. {source: " + messageParts[0] +
-                " , channel: " + messageParts[1] +
-                " , message: " + messageParts[2] + "}");
+                    " , channel: " + messageParts[1] +
+                    " , message: " + messageParts[2] + "}");
 
             plugin.onRedisMessageEvent(messageParts[0], messageParts[1], messageParts[2]);
-        }
-        else
-        {
+        } else {
             plugin.severe("Received badly formatted message in DRPubSubListener. " +
-                "{message: " + completeMessage + "}");
+                    "{message: " + completeMessage + "}");
         }
     }
 
@@ -73,8 +66,7 @@ public class DRPubSubListener implements RedisPubSubListener<String, String>, Sh
      * @param channel Channel that the listener was registered to.
      * @param count   Number of other listeners (on that Redis instance) on the channel.
      */
-    public void subscribed(String channel, long count)
-    {
+    public void subscribed(String channel, long count) {
         plugin.debug("Listener subscribed to {channel: " + channel + "}");
     }
 
@@ -82,14 +74,16 @@ public class DRPubSubListener implements RedisPubSubListener<String, String>, Sh
      * @param channel Channel that the listener was unregistered from.
      * @param count   Number of other listeners (on that Redis instance) on the channel.
      */
-    public void unsubscribed(String channel, long count)
-    {
+    public void unsubscribed(String channel, long count) {
         plugin.debug("Listener unsubscribed from {channel: " + channel + "}");
     }
 
-    public void message(String pattern, String channel, String message) {}
+    public void message(String pattern, String channel, String message) {
+    }
 
-    public void psubscribed(String pattern, long count) {}
+    public void psubscribed(String pattern, long count) {
+    }
 
-    public void punsubscribed(String pattern, long count) {}
+    public void punsubscribed(String pattern, long count) {
+    }
 }

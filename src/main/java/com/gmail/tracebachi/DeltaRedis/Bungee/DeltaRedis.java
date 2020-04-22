@@ -16,7 +16,7 @@
  */
 package com.gmail.tracebachi.DeltaRedis.Bungee;
 
-import com.gmail.tracebachi.DeltaRedis.Bungee.Commands.RunCmdBungeeCommand;
+import com.gmail.tracebachi.DeltaRedis.Bungee.Commands.DebugBungeeCommand;
 import com.gmail.tracebachi.DeltaRedis.Shared.DeltaRedisInterface;
 import com.gmail.tracebachi.DeltaRedis.Shared.Redis.DRCommandSender;
 import com.gmail.tracebachi.DeltaRedis.Shared.Redis.DRPubSubListener;
@@ -43,8 +43,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by Trace Bachi (tracebachi@gmail.com) on 10/18/15.
  */
-public class DeltaRedis extends Plugin implements DeltaRedisInterface
-{
+public class DeltaRedis extends Plugin implements DeltaRedisInterface {
     private boolean debugEnabled;
     private Configuration config;
     private ClientResources resources;
@@ -54,37 +53,36 @@ public class DeltaRedis extends Plugin implements DeltaRedisInterface
     private StatefulRedisPubSubConnection<String, String> pubSubConn;
     private StatefulRedisConnection<String, String> commandConn;
 
-    private DeltaRedisListener mainListener;
-    private RunCmdBungeeCommand runCmdBungeeCommand;
+    private DebugBungeeCommand debugBungeeCommand;
     private DeltaRedisApi deltaRedisApi;
 
     @Override
-    public void onEnable()
-    {
+    public void onEnable() {
         info("-----------------------------------------------------------------");
         info("[IMPORTANT] Please verify that all Spigot servers are configured with their correct cased name.");
-        info("[IMPORTANT] \'World\' is not the same as \'world\'");
-        for(Map.Entry<String, ServerInfo> entry : getProxy().getServers().entrySet())
-        {
+        info("[IMPORTANT] 'World' is not the same as 'world'");
+        for (Map.Entry<String, ServerInfo> entry : getProxy().getServers().entrySet()) {
             info("[IMPORTANT] Case-sensitive server name: " + entry.getValue().getName());
         }
         info("-----------------------------------------------------------------");
 
         reloadConfig();
-        if(config == null) { return; }
+        if (config == null) {
+            return;
+        }
         debugEnabled = config.getBoolean("DebugMode", false);
 
         Preconditions.checkArgument(
-            config.get("BungeeName") != null,
-            "BungeeName not specified.");
+                config.get("BungeeName") != null,
+                "BungeeName not specified.");
 
         ClientOptions.Builder optionBuilder = new ClientOptions.Builder();
         optionBuilder.autoReconnect(true);
 
         resources = new DefaultClientResources.Builder()
-            .ioThreadPoolSize(4)
-            .computationThreadPoolSize(4)
-            .build();
+                .ioThreadPoolSize(4)
+                .computationThreadPoolSize(4)
+                .build();
 
         client = RedisClient.create(resources, getRedisUri(config));
         client.setOptions(optionBuilder.build());
@@ -100,30 +98,24 @@ public class DeltaRedis extends Plugin implements DeltaRedisInterface
 
         deltaRedisApi = new DeltaRedisApi(commandSender, this);
 
-        mainListener = new DeltaRedisListener(commandConn, this);
-        mainListener.register();
+        debugBungeeCommand = new DebugBungeeCommand(this);
+        debugBungeeCommand.register();
 
-        runCmdBungeeCommand = new RunCmdBungeeCommand(this);
-        runCmdBungeeCommand.register();
-
-        getProxy().getScheduler().schedule(this, () ->
-        {
-            if(commandSender != null)
-            {
-                commandSender.getServers();
-                commandSender.getPlayers();
+        getProxy().getScheduler().runAsync(this, () -> {
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        }, 1, 1, TimeUnit.SECONDS);
+            if (commandSender != null)
+                commandSender.refresh();
+        });
     }
 
     @Override
-    public void onDisable()
-    {
-        runCmdBungeeCommand.shutdown();
-        runCmdBungeeCommand = null;
-
-        mainListener.shutdown();
-        mainListener = null;
+    public void onDisable() {
+        debugBungeeCommand.shutdown();
+        debugBungeeCommand = null;
 
         deltaRedisApi.shutdown();
         deltaRedisApi = null;
@@ -150,70 +142,65 @@ public class DeltaRedis extends Plugin implements DeltaRedisInterface
         debugEnabled = false;
     }
 
+    public boolean isDebugEnabled() {
+        return debugEnabled;
+    }
+
+    public void setDebugEnabled(boolean debugEnabled) {
+        this.debugEnabled = debugEnabled;
+    }
+
     @Override
-    public void onRedisMessageEvent(String source, String channel, String message)
-    {
+    public void onRedisMessageEvent(String source, String channel, String message) {
         DeltaRedisMessageEvent event = new DeltaRedisMessageEvent(source, channel, message);
 
         getProxy().getPluginManager().callEvent(event);
     }
 
     @Override
-    public String getBungeeName()
-    {
+    public String getBungeeName() {
         return config.getString("BungeeName");
     }
 
     @Override
-    public String getServerName()
-    {
+    public String getServerName() {
         return Servers.BUNGEECORD;
     }
 
     @Override
-    public void info(String message)
-    {
+    public void info(String message) {
         getLogger().info(message);
     }
 
     @Override
-    public void severe(String message)
-    {
+    public void severe(String message) {
         getLogger().severe(message);
     }
 
     @Override
-    public void debug(String message)
-    {
-        if(debugEnabled)
-        {
+    public void debug(String message) {
+        if (debugEnabled) {
             getLogger().info("[Debug] " + message);
         }
     }
 
-    private void reloadConfig()
-    {
-        try
-        {
+    private void reloadConfig() {
+        try {
             File file = ConfigUtil.saveResource(this, "bungee-config.yml", "config.yml");
             config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
 
-            if(config == null)
-            {
+            if (config == null) {
                 ConfigUtil.saveResource(this, "bungee-config.yml", "config-example.yml", true);
                 getLogger().severe("Invalid configuration file! An example configuration" +
-                    " has been saved to the DeltaRedis folder.");
+                        " has been saved to the DeltaRedis folder.");
             }
-        }
-        catch(IOException e)
-        {
+        } catch (IOException e) {
             getLogger().severe("Failed to load configuration file.");
             e.printStackTrace();
         }
     }
 
-    private RedisURI getRedisUri(Configuration config)
-    {
+    private RedisURI getRedisUri(Configuration config) {
         String redisUrl = config.getString("RedisServer.URL");
         String redisPort = config.getString("RedisServer.Port");
         String redisPass = config.getString("RedisServer.Password");
@@ -222,12 +209,9 @@ public class DeltaRedis extends Plugin implements DeltaRedisInterface
         Preconditions.checkNotNull(redisUrl, "Redis URL cannot be null.");
         Preconditions.checkNotNull(redisPort, "Redis Port cannot be null.");
 
-        if(hasPassword)
-        {
+        if (hasPassword) {
             return RedisURI.create("redis://" + redisPass + '@' + redisUrl + ':' + redisPort);
-        }
-        else
-        {
+        } else {
             return RedisURI.create("redis://" + redisUrl + ':' + redisPort);
         }
     }

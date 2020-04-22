@@ -22,14 +22,12 @@ import net.md_5.bungee.api.plugin.Event;
 /**
  * Created by Trace Bachi (tracebachi@gmail.com) on 10/18/15.
  */
-public class DeltaRedisMessageEvent extends Event
-{
+public class DeltaRedisMessageEvent extends Event {
     private final String sendingServer;
     private final String channel;
     private final String message;
 
-    public DeltaRedisMessageEvent(String sendingServer, String channel, String message)
-    {
+    public DeltaRedisMessageEvent(String sendingServer, String channel, String message) {
         this.sendingServer = Preconditions.checkNotNull(sendingServer, "Sending Server was null.");
         this.channel = Preconditions.checkNotNull(channel, "Channel was null.");
         this.message = Preconditions.checkNotNull(message, "Message was null.");
@@ -38,24 +36,21 @@ public class DeltaRedisMessageEvent extends Event
     /**
      * @return Name of the server that sent the message.
      */
-    public String getSendingServer()
-    {
+    public String getSendingServer() {
         return sendingServer;
     }
 
     /**
      * @return Name of the channel that the message is targeted at.
      */
-    public String getChannel()
-    {
+    public String getChannel() {
         return channel;
     }
 
     /**
      * @return The message/data received.
      */
-    public String getMessage()
-    {
+    public String getMessage() {
         return message;
     }
 
@@ -63,8 +58,7 @@ public class DeltaRedisMessageEvent extends Event
      * @return Comma separated string of the sendingServer, channel, and message.
      */
     @Override
-    public String toString()
-    {
+    public String toString() {
         return "{" + sendingServer + " , " + channel + " , " + message + "}";
     }
 }

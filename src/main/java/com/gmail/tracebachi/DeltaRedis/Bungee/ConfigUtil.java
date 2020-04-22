@@ -24,8 +24,7 @@ import java.io.*;
 /**
  * Created by Trace Bachi (tracebachi@gmail.com, BigBossZee) on 12/10/15.
  */
-public interface ConfigUtil
-{
+public interface ConfigUtil {
     /**
      * Loads the resource from the JAR and saves it to the destination under the plugin's
      * data folder. By default, the destination file will not be replaced if it exists.
@@ -35,8 +34,7 @@ public interface ConfigUtil
      * @param destinationName Filename of the destination.
      * @return Destination File.
      */
-    static File saveResource(Plugin plugin, String resourceName, String destinationName)
-    {
+    static File saveResource(Plugin plugin, String resourceName, String destinationName) {
         return saveResource(plugin, resourceName, destinationName, false);
     }
 
@@ -46,37 +44,31 @@ public interface ConfigUtil
      * <p>
      * Originally authored by: vemacs, Feb 15, 2014
      */
+    @SuppressWarnings("UnstableApiUsage")
     static File saveResource(Plugin plugin, String resourceName, String destinationName,
-                             boolean replace)
-    {
+                             boolean replace) {
         File folder = plugin.getDataFolder();
 
-        if(!folder.exists() && !folder.mkdir())
-        {
+        if (!folder.exists() && !folder.mkdir()) {
             return null;
         }
 
         File destinationFile = new File(folder, destinationName);
 
-        try
-        {
-            if(!destinationFile.exists() || replace)
-            {
-                if(destinationFile.createNewFile())
-                {
-                    try(InputStream in = plugin.getResourceAsStream(resourceName);
-                        OutputStream out = new FileOutputStream(destinationFile))
-                    {
+        try {
+            if (!destinationFile.exists() || replace) {
+                if (destinationFile.createNewFile()) {
+                    try (InputStream in = plugin.getResourceAsStream(resourceName);
+                         OutputStream out = new FileOutputStream(destinationFile)) {
                         ByteStreams.copy(in, out);
                     }
+                } else {
+                    return null;
                 }
-                else { return null; }
             }
 
             return destinationFile;
-        }
-        catch(IOException e)
-        {
+        } catch (IOException e) {
             e.printStackTrace();
             return null;
         }

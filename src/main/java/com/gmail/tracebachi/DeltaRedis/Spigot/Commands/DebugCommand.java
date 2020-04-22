@@ -23,66 +23,50 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
-import static com.gmail.tracebachi.DeltaRedis.Shared.Prefixes.*;
-
 /**
  * Created by Trace Bachi (tracebachi@gmail.com, BigBossZee) on 11/28/15.
  */
-public class DebugCommand implements CommandExecutor, Registerable, Shutdownable
-{
+public class DebugCommand implements CommandExecutor, Registerable, Shutdownable {
     private DeltaRedis plugin;
 
-    public DebugCommand(DeltaRedis plugin)
-    {
+    public DebugCommand(DeltaRedis plugin) {
         this.plugin = plugin;
     }
 
     @Override
-    public void register()
-    {
+    public void register() {
         plugin.getCommand("deltaredisdebug").setExecutor(this);
     }
 
     @Override
-    public void unregister()
-    {
+    public void unregister() {
         plugin.getCommand("deltaredisdebug").setExecutor(null);
     }
 
     @Override
-    public void shutdown()
-    {
+    public void shutdown() {
         unregister();
         plugin = null;
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String s, String[] args)
-    {
-        if(!sender.hasPermission("DeltaRedis.Debug"))
-        {
-            sender.sendMessage(FAILURE + "You do not have the " +
-                input("DeltaRedis.Debug") + " permission.");
+    public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
+        if (!sender.hasPermission("DeltaRedis.Debug")) {
+            sender.sendMessage("You do not have permission to run this command.");
             return true;
         }
 
-        if(args.length < 1)
-        {
-            sender.sendMessage(INFO + "/deltaredisdebug <on|off>");
+        if (args.length < 1) {
+            sender.sendMessage("/deltaredisdebug <on|off>");
             return true;
         }
 
-        if(args[0].equalsIgnoreCase("on"))
-        {
+        if (args[0].equalsIgnoreCase("on")) {
             plugin.setDebugEnabled(true);
-        }
-        else if(args[0].equalsIgnoreCase("off"))
-        {
+        } else if (args[0].equalsIgnoreCase("off")) {
             plugin.setDebugEnabled(true);
-        }
-        else
-        {
-            sender.sendMessage(INFO + "/deltaredisdebug <on|off>");
+        } else {
+            sender.sendMessage("/deltaredisdebug <on|off>");
         }
 
         return true;

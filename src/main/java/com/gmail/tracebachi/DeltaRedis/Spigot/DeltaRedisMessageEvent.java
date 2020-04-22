@@ -23,50 +23,48 @@ import org.bukkit.event.HandlerList;
 /**
  * Created by Trace Bachi (tracebachi@gmail.com) on 10/18/15.
  */
-public class DeltaRedisMessageEvent extends Event
-{
+public class DeltaRedisMessageEvent extends Event {
     private static final HandlerList handlers = new HandlerList();
 
     private final String sendingServer;
     private final String channel;
     private final String message;
 
-    public DeltaRedisMessageEvent(String sendingServer, String channel, String message)
-    {
+    public DeltaRedisMessageEvent(String sendingServer, String channel, String message) {
         this.sendingServer = Preconditions.checkNotNull(sendingServer, "Sending Server was null.");
         this.channel = Preconditions.checkNotNull(channel, "Channel was null.");
         this.message = Preconditions.checkNotNull(message, "Message was null.");
     }
 
+    public static HandlerList getHandlerList() {
+        return handlers;
+    }
+
     /**
      * @return Name of the server that sent the message.
      */
-    public String getSendingServer()
-    {
+    public String getSendingServer() {
         return sendingServer;
     }
 
     /**
      * @return Name of the channel that the message is targeted at.
      */
-    public String getChannel()
-    {
+    public String getChannel() {
         return channel;
     }
 
     /**
      * @return The message/data received.
      */
-    public String getMessage()
-    {
+    public String getMessage() {
         return message;
     }
 
     /**
      * @return True if the message was sent by the current server. False otherwise.
      */
-    public boolean isSendingServerSelf()
-    {
+    public boolean isSendingServerSelf() {
         return DeltaRedisApi.instance().getServerName().equals(sendingServer);
     }
 
@@ -74,18 +72,11 @@ public class DeltaRedisMessageEvent extends Event
      * @return Comma separated string of the sendingServer, channel, and message.
      */
     @Override
-    public String toString()
-    {
+    public String toString() {
         return "{" + sendingServer + " , " + channel + " , " + message + "}";
     }
 
-    public HandlerList getHandlers()
-    {
-        return handlers;
-    }
-
-    public static HandlerList getHandlerList()
-    {
+    public HandlerList getHandlers() {
         return handlers;
     }
 }

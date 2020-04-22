@@ -21,8 +21,6 @@ import com.gmail.tracebachi.DeltaRedis.Shared.Redis.DRCommandSender;
 import com.gmail.tracebachi.DeltaRedis.Shared.Redis.DRPubSubListener;
 import com.gmail.tracebachi.DeltaRedis.Shared.Servers;
 import com.gmail.tracebachi.DeltaRedis.Spigot.Commands.DebugCommand;
-import com.gmail.tracebachi.DeltaRedis.Spigot.Commands.IsOnlineCommand;
-import com.gmail.tracebachi.DeltaRedis.Spigot.Commands.RunCmdCommand;
 import com.google.common.base.Preconditions;
 import com.lambdaworks.redis.ClientOptions;
 import com.lambdaworks.redis.RedisClient;
@@ -36,13 +34,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 /**
  * Created by Trace Bachi (tracebachi@gmail.com) on 10/18/15.
  */
-public class DeltaRedis extends JavaPlugin implements DeltaRedisInterface
-{
+public class DeltaRedis extends JavaPlugin implements DeltaRedisInterface {
     private boolean debugEnabled;
-    private DeltaRedisListener mainListener;
     private DebugCommand debugCommand;
-    private IsOnlineCommand isOnlineCommand;
-    private RunCmdCommand runCmdCommand;
 
     private ClientResources resources;
     private RedisClient client;
@@ -53,35 +47,33 @@ public class DeltaRedis extends JavaPlugin implements DeltaRedisInterface
     private StatefulRedisConnection<String, String> standaloneConn;
 
     @Override
-    public void onLoad()
-    {
+    public void onLoad() {
         saveDefaultConfig();
     }
 
     @Override
-    public void onEnable()
-    {
+    public void onEnable() {
         info("-----------------------------------------------------------------");
-        info("[IMPORTANT] Please make sure that \'ServerName\' is *exactly* the same as your BungeeCord config for this server.");
+        info("[IMPORTANT] Please make sure that 'ServerName' is *exactly* the same as your BungeeCord config for this server.");
         info("[IMPORTANT] DeltaRedis and all plugins that depend on it may not run correctly if the name is not correct.");
-        info("[IMPORTANT] \'World\' is not the same as \'world\'");
+        info("[IMPORTANT] 'World' is not the same as 'world'");
         info("-----------------------------------------------------------------");
 
         reloadConfig();
         debugEnabled = getConfig().getBoolean("DebugMode", false);
 
         Preconditions.checkArgument(getConfig().contains("BungeeName"),
-            "BungeeName not specified.");
+                "BungeeName not specified.");
         Preconditions.checkArgument(getConfig().contains("ServerNameInBungeeCord"),
-            "ServerNameInBungeeCord not specified.");
+                "ServerNameInBungeeCord not specified.");
 
         ClientOptions.Builder optionBuilder = new ClientOptions.Builder();
         optionBuilder.autoReconnect(true);
 
         resources = new DefaultClientResources.Builder()
-            .ioThreadPoolSize(4)
-            .computationThreadPoolSize(4)
-            .build();
+                .ioThreadPoolSize(4)
+                .computationThreadPoolSize(4)
+                .build();
 
         client = RedisClient.create(resources, getRedisUri());
         pubSubConn = client.connectPubSub();
@@ -90,56 +82,27 @@ public class DeltaRedis extends JavaPlugin implements DeltaRedisInterface
         pubSubListener = new DRPubSubListener(this);
         pubSubConn.addListener(pubSubListener);
         pubSubConn.sync().subscribe(
-            getBungeeName() + ':' + getServerName(),
-            getBungeeName() + ':' + Servers.SPIGOT);
+                getBungeeName() + ':' + getServerName(),
+                getBungeeName() + ':' + Servers.SPIGOT);
 
         commandSender = new DRCommandSender(standaloneConn, this);
         commandSender.setup();
 
         deltaRedisApi = new DeltaRedisApi(commandSender, this);
 
-        mainListener = new DeltaRedisListener(this);
-        mainListener.register();
-
         debugCommand = new DebugCommand(this);
         debugCommand.register();
 
-        isOnlineCommand = new IsOnlineCommand(this);
-        isOnlineCommand.register();
-
-        runCmdCommand = new RunCmdCommand(this);
-        runCmdCommand.register();
-
-        int updatePeriod = getConfig().getInt("OnlineUpdatePeriod", 300);
-
-        getServer().getScheduler().runTaskTimerAsynchronously(
-            this,
-            () ->
-            {
-                if(commandSender != null)
-                {
-                    commandSender.getServers();
-                    commandSender.getPlayers();
-                }
-            }, 20, updatePeriod);
+        getServer().getScheduler().runTaskLaterAsynchronously(this, () -> {
+            if (commandSender != null)
+                commandSender.refresh();
+        }, 20);
     }
 
     @Override
-    public void onDisable()
-    {
-        getServer().getScheduler().cancelTasks(this);
-
-        runCmdCommand.shutdown();
-        runCmdCommand = null;
-
-        isOnlineCommand.shutdown();
-        isOnlineCommand = null;
-
+    public void onDisable() {
         debugCommand.shutdown();
         debugCommand = null;
-
-        mainListener.shutdown();
-        mainListener = null;
 
         deltaRedisApi.shutdown();
         deltaRedisApi = null;
@@ -164,61 +127,49 @@ public class DeltaRedis extends JavaPlugin implements DeltaRedisInterface
         resources = null;
     }
 
-    public boolean isDebugEnabled()
-    {
+    public boolean isDebugEnabled() {
         return debugEnabled;
     }
 
-    public void setDebugEnabled(boolean debugEnabled)
-    {
+    public void setDebugEnabled(boolean debugEnabled) {
         this.debugEnabled = debugEnabled;
     }
 
     @Override
-    public void onRedisMessageEvent(String source, String channel, String message)
-    {
+    public void onRedisMessageEvent(String source, String channel, String message) {
         DeltaRedisMessageEvent event = new DeltaRedisMessageEvent(source, channel, message);
 
-        getServer().getScheduler().runTask(
-            this,
-            () -> getServer().getPluginManager().callEvent(event));
+        getServer().getScheduler().runTask(this, () -> getServer().getPluginManager().callEvent(event));
     }
 
     @Override
-    public String getBungeeName()
-    {
+    public String getBungeeName() {
         return getConfig().getString("BungeeName");
     }
 
     @Override
-    public String getServerName()
-    {
+    public String getServerName() {
         return getConfig().getString("ServerNameInBungeeCord");
     }
 
     @Override
-    public void info(String message)
-    {
+    public void info(String message) {
         getLogger().info(message);
     }
 
     @Override
-    public void severe(String message)
-    {
+    public void severe(String message) {
         getLogger().severe(message);
     }
 
     @Override
-    public void debug(String message)
-    {
-        if(debugEnabled)
-        {
+    public void debug(String message) {
+        if (debugEnabled) {
             getLogger().info("[Debug] " + message);
         }
     }
 
-    private RedisURI getRedisUri()
-    {
+    private RedisURI getRedisUri() {
         String redisUrl = getConfig().getString("RedisServer.URL");
         String redisPort = getConfig().getString("RedisServer.Port");
         String redisPass = getConfig().getString("RedisServer.Password");
@@ -227,12 +178,9 @@ public class DeltaRedis extends JavaPlugin implements DeltaRedisInterface
         Preconditions.checkNotNull(redisUrl, "Redis URL cannot be null.");
         Preconditions.checkNotNull(redisPort, "Redis Port cannot be null.");
 
-        if(hasPassword)
-        {
+        if (hasPassword) {
             return RedisURI.create("redis://" + redisPass + '@' + redisUrl + ':' + redisPort);
-        }
-        else
-        {
+        } else {
             return RedisURI.create("redis://" + redisUrl + ':' + redisPort);
         }
     }

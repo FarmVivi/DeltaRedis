@@ -16,26 +16,18 @@
  */
 package com.gmail.tracebachi.DeltaRedis.Bungee;
 
-import com.gmail.tracebachi.DeltaRedis.Shared.Cache.CachedPlayer;
-import com.gmail.tracebachi.DeltaRedis.Shared.DeltaRedisChannels;
 import com.gmail.tracebachi.DeltaRedis.Shared.Redis.DRCommandSender;
 import com.gmail.tracebachi.DeltaRedis.Shared.Servers;
 import com.google.common.base.Preconditions;
-import net.md_5.bungee.BungeeCord;
+import net.md_5.bungee.api.ProxyServer;
 
 import java.util.Set;
 
 /**
  * Created by Trace Bachi (tracebachi@gmail.com, BigBossZee) on 12/11/15.
  */
-public class DeltaRedisApi
-{
+public class DeltaRedisApi {
     private static DeltaRedisApi instance;
-
-    public static DeltaRedisApi instance()
-    {
-        return instance;
-    }
 
     private DRCommandSender deltaSender;
     private DeltaRedis plugin;
@@ -43,10 +35,8 @@ public class DeltaRedisApi
     /**
      * Package-private constructor.
      */
-    DeltaRedisApi(DRCommandSender deltaSender, DeltaRedis plugin)
-    {
-        if(instance != null)
-        {
+    DeltaRedisApi(DRCommandSender deltaSender, DeltaRedis plugin) {
+        if (instance != null) {
             instance.shutdown();
         }
 
@@ -56,11 +46,14 @@ public class DeltaRedisApi
         instance = this;
     }
 
+    public static DeltaRedisApi instance() {
+        return instance;
+    }
+
     /**
      * Package-private shutdown method.
      */
-    void shutdown()
-    {
+    void shutdown() {
         this.deltaSender = null;
         this.plugin = null;
 
@@ -71,8 +64,7 @@ public class DeltaRedisApi
      * @return Name of the BungeeCord instance to which the server belongs.
      * This value is set in the configuration file for each server.
      */
-    public String getBungeeName()
-    {
+    public String getBungeeName() {
         return plugin.getBungeeName();
     }
 
@@ -80,18 +72,16 @@ public class DeltaRedisApi
      * @return Name of the server (String). If the server is BungeeCord, the
      * server name will be {@link Servers#BUNGEECORD}.
      */
-    public String getServerName()
-    {
+    public String getServerName() {
         return plugin.getServerName();
     }
 
     /**
      * @return An unmodifiable set of servers that are part of the same
      * BungeeCord as the current server. This method will retrieve the
-     * servers from the last call to {@link DRCommandSender#getServers()}.
+     * servers from the last call to {@link DRCommandSender#refresh()}.
      */
-    public Set<String> getCachedServers()
-    {
+    public Set<String> getCachedServers() {
         return deltaSender.getCachedServers();
     }
 
@@ -99,19 +89,8 @@ public class DeltaRedisApi
      * @return True if the BungeeCord instance was last known to be online.
      * False if it was not.
      */
-    public boolean isBungeeCordOnline()
-    {
+    public boolean isBungeeCordOnline() {
         return deltaSender.isBungeeCordOnline();
-    }
-
-    /**
-     * @return An unmodifiable set of players (names) that are part of the
-     * same BungeeCord. This method will retrieve the players from the last
-     * call to {@link DRCommandSender#getPlayers()}.
-     */
-    public Set<String> getCachedPlayers()
-    {
-        return deltaSender.getCachedPlayers();
     }
 
     /**
@@ -122,9 +101,8 @@ public class DeltaRedisApi
      * @param channel       Channel of the message.
      * @param messagePieces The parts of the message.
      */
-    public void publish(String destination, String channel, String... messagePieces)
-    {
-        String joinedMessage = String.join("/\\", (CharSequence[]) messagePieces);
+    public void publish(String destination, String channel, String... messagePieces) {
+        String joinedMessage = String.join("/\\", messagePieces);
 
         publish(destination, channel, joinedMessage);
     }
@@ -136,149 +114,21 @@ public class DeltaRedisApi
      * @param channel     Channel of the message.
      * @param message     The actual message.
      */
-    public void publish(String destination, String channel, String message)
-    {
+    public void publish(String destination, String channel, String message) {
         Preconditions.checkNotNull(destination, "DestServer was null.");
         Preconditions.checkNotNull(channel, "Channel was null.");
         Preconditions.checkNotNull(message, "Message was null.");
 
-        if(plugin.getServerName().equals(destination))
-        {
+        if (plugin.getServerName().equals(destination)) {
             plugin.onRedisMessageEvent(destination, channel, message);
             return;
         }
 
-        BungeeCord.getInstance().getScheduler().runAsync(
-            plugin,
-            () -> deltaSender.publish(
-                destination,
-                channel,
-                message));
-    }
-
-    /**
-     * Sends a command that will run as OP by the receiving server.
-     *
-     * @param destServer Destination server name, {@link Servers#SPIGOT},
-     *                   or {@link Servers#BUNGEECORD}.
-     * @param command    Command to send.
-     */
-    public void sendCommandToServer(String destServer, String command)
-    {
-        sendCommandToServer(destServer, command, "UNKNOWN_PLUGIN");
-    }
-
-    /**
-     * Sends a command that will run as OP by the receiving server.
-     *
-     * @param destServer Destination server name or {@link Servers#SPIGOT}.
-     * @param command    Command to send.
-     * @param sender     Name to record in the logs as having run the command.
-     */
-    public void sendCommandToServer(String destServer, String command, String sender)
-    {
-        Preconditions.checkNotNull(destServer, "DestServer was null.");
-        Preconditions.checkNotNull(command, "Command was null.");
-        Preconditions.checkNotNull(sender, "Sender was null.");
-
-        if(plugin.getServerName().equals(destServer))
-        {
-            BungeeCord instance = BungeeCord.getInstance();
-            instance.getPluginManager().dispatchCommand(instance.getConsole(), command);
-            return;
-        }
-
-        BungeeCord.getInstance().getScheduler().runAsync(
-            plugin,
-            () -> deltaSender.publish(
-                destServer,
-                DeltaRedisChannels.RUN_CMD,
-                sender + "/\\" + command));
-    }
-
-    /**
-     * Sends a message to a player on an unknown server. The message will not
-     * reach the player if they have logged off by the time the message
-     * reaches the server or if not player is online by the specified name.
-     *
-     * @param playerName Name of the player to send message to.
-     * @param message    Message to send.
-     */
-    public void sendMessageToPlayer(String playerName, String message)
-    {
-        Preconditions.checkNotNull(playerName, "PlayerName was null.");
-        Preconditions.checkNotNull(message, "Message was null.");
-
-        BungeeCord.getInstance().getScheduler().runAsync(
-            plugin,
-            () ->
-            {
-                CachedPlayer cachedPlayer = deltaSender.getPlayer(playerName);
-
-                if(cachedPlayer == null) { return; }
-
-                deltaSender.publish(
-                    cachedPlayer.getServer(),
-                    DeltaRedisChannels.SEND_MESSAGE,
-                    playerName + "/\\" + message);
-            });
-    }
-
-    /**
-     * Sends a message to a player in the specified server. The message will not
-     * reach the player if they have logged off by the time the message
-     * reaches the server.
-     *
-     * @param server     Name of the server to send the message to.
-     * @param playerName Name of the player to send message to.
-     * @param message    Message to send.
-     */
-    public void sendMessageToPlayer(String server, String playerName, String message)
-    {
-        Preconditions.checkNotNull(playerName, "PlayerName was null.");
-        Preconditions.checkNotNull(message, "Message was null.");
-        Preconditions.checkArgument(!server.equals(Servers.BUNGEECORD), "Server was BUNGEECORD.");
-
-        BungeeCord.getInstance().getScheduler().runAsync(
-            plugin,
-            () -> deltaSender.publish(
-                server,
-                DeltaRedisChannels.SEND_MESSAGE,
-                playerName + "/\\" + message));
-    }
-
-    /**
-     * Sends an announcement to all players on a server.
-     *
-     * @param destServer   Destination server name or {@link Servers#SPIGOT}.
-     * @param announcement Announcement to send.
-     */
-    public void sendAnnouncementToServer(String destServer, String announcement)
-    {
-        sendAnnouncementToServer(destServer, announcement, "");
-    }
-
-    /**
-     * Sends an announcement to all players on a server with a specific
-     * permission.
-     *
-     * @param destServer   Destination server name or {@link Servers#SPIGOT}.
-     * @param announcement Announcement to send.
-     * @param permission   Permission that a player must have to receive the
-     *                     announcement. The empty string, "", can be used to
-     *                     signal that a permission is not required.
-     */
-    public void sendAnnouncementToServer(String destServer, String announcement, String permission)
-    {
-        Preconditions.checkNotNull(destServer, "DestServer was null.");
-        Preconditions.checkNotNull(announcement, "Announcement was null.");
-        Preconditions.checkNotNull(permission, "Permission was null.");
-
-        BungeeCord.getInstance().getScheduler().runAsync(
-            plugin,
-            () -> deltaSender.publish(
-                destServer,
-                DeltaRedisChannels.SEND_ANNOUNCEMENT,
-                permission + "/\\" + announcement));
+        ProxyServer.getInstance().getScheduler().runAsync(
+                plugin,
+                () -> deltaSender.publish(
+                        destination,
+                        channel,
+                        message));
     }
 }

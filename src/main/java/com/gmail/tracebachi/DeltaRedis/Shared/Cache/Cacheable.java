@@ -19,8 +19,7 @@ package com.gmail.tracebachi.DeltaRedis.Shared.Cache;
 /**
  * Created by Trace Bachi (tracebachi@gmail.com) on 10/18/15.
  */
-public interface Cacheable
-{
+public interface Cacheable {
     /**
      * @return Time created at in milliseconds.
      */

@@ -16,22 +16,18 @@
  */
 package com.gmail.tracebachi.DeltaRedis.Shared.Redis;
 
-import com.gmail.tracebachi.DeltaRedis.Shared.Cache.CachedPlayer;
 import com.gmail.tracebachi.DeltaRedis.Shared.DeltaRedisInterface;
 import com.gmail.tracebachi.DeltaRedis.Shared.Servers;
 import com.gmail.tracebachi.DeltaRedis.Shared.Shutdownable;
-import com.google.common.base.Preconditions;
 import com.lambdaworks.redis.api.StatefulRedisConnection;
 
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 
 /**
  * Created by Trace Bachi (tracebachi@gmail.com) on 10/18/15.
  */
-public class DRCommandSender implements Shutdownable
-{
+public class DRCommandSender implements Shutdownable {
     private final String serverName;
     private final String bungeeName;
 
@@ -39,11 +35,9 @@ public class DRCommandSender implements Shutdownable
     private DeltaRedisInterface plugin;
     private boolean isBungeeCordOnline;
     private Set<String> cachedServers;
-    private Set<String> cachedPlayers;
 
     public DRCommandSender(StatefulRedisConnection<String, String> connection,
-                           DeltaRedisInterface plugin)
-    {
+                           DeltaRedisInterface plugin) {
         this.connection = connection;
         this.plugin = plugin;
         this.bungeeName = plugin.getBungeeName();
@@ -53,16 +47,14 @@ public class DRCommandSender implements Shutdownable
     /**
      * Adds server to Redis, making it visible to other servers/
      */
-    public synchronized void setup()
-    {
+    public synchronized void setup() {
         plugin.debug("DRCommandSender.setup()");
 
         connection.sync().sadd(bungeeName + ":servers", serverName);
     }
 
     @Override
-    public synchronized void shutdown()
-    {
+    public synchronized void shutdown() {
         plugin.debug("DRCommandSender.shutdown()");
 
         connection.sync().srem(bungeeName + ":servers", serverName);
@@ -75,25 +67,21 @@ public class DRCommandSender implements Shutdownable
      * @return An unmodifiable set of servers that are part of the
      * same BungeeCord. This method will retrieve the servers from Redis.
      */
-    public synchronized Set<String> getServers()
-    {
+    public synchronized void refresh() {
         plugin.debug("DRCommandSender.getServers()");
 
         Set<String> result = connection.sync().smembers(bungeeName + ":servers");
 
         isBungeeCordOnline = result.remove(Servers.BUNGEECORD);
         cachedServers = Collections.unmodifiableSet(result);
-
-        return cachedServers;
     }
 
     /**
      * @return An unmodifiable set of servers that are part of the
      * same BungeeCord. This method will retrieve the servers from the last
-     * call to {@link DRCommandSender#getServers()}.
+     * call to {@link DRCommandSender#refresh()}.
      */
-    public Set<String> getCachedServers()
-    {
+    public Set<String> getCachedServers() {
         return cachedServers;
     }
 
@@ -101,34 +89,8 @@ public class DRCommandSender implements Shutdownable
      * @return True if the BungeeCord instance was last known to be online.
      * False if it was not.
      */
-    public boolean isBungeeCordOnline()
-    {
+    public boolean isBungeeCordOnline() {
         return isBungeeCordOnline;
-    }
-
-    /**
-     * @return An unmodifiable set of players (names) that are part of the
-     * same BungeeCord. This method will retrieve the players from Redis.
-     */
-    public synchronized Set<String> getPlayers()
-    {
-        plugin.debug("DRCommandSender.getPlayers()");
-
-        Set<String> result = connection.sync().smembers(bungeeName + ":players");
-
-        cachedPlayers = Collections.unmodifiableSet(result);
-
-        return cachedPlayers;
-    }
-
-    /**
-     * @return An unmodifiable set of players (names) that are part of the
-     * same BungeeCord. This method will retrieve the players from the last
-     * call to {@link DRCommandSender#getPlayers()}.
-     */
-    public Set<String> getCachedPlayers()
-    {
-        return cachedPlayers;
     }
 
     /**
@@ -141,37 +103,11 @@ public class DRCommandSender implements Shutdownable
      * @param message Message to send.
      * @return The number of servers that received the message.
      */
-    public synchronized long publish(String dest, String channel, String message)
-    {
+    public synchronized long publish(String dest, String channel, String message) {
         plugin.debug("DRCommandSender.publish(" + dest + ", " + channel + ", " + message + ")");
 
         return connection.sync().publish(
-            bungeeName + ':' + dest,
-            serverName + "/\\" + channel + "/\\" + message);
-    }
-
-    /**
-     * Returns a CachedPlayer from Redis.
-     *
-     * @param playerName Name of the player to find.
-     * @return CachedPlayer if found and null if not.
-     */
-    public synchronized CachedPlayer getPlayer(String playerName)
-    {
-        Preconditions.checkNotNull(playerName, "PlayerName cannot be null.");
-
-        plugin.debug("DRCommandSender.getPlayer(" + playerName + ")");
-
-        Map<String, String> result = connection.sync().hgetall(
-            bungeeName + ":players:" + playerName.toLowerCase());
-
-        if(result == null) { return null; }
-
-        String server = result.get("server");
-        String ip = result.get("ip");
-
-        if(server == null || ip == null) { return null; }
-
-        return new CachedPlayer(server, ip);
+                bungeeName + ':' + dest,
+                serverName + "/\\" + channel + "/\\" + message);
     }
 }

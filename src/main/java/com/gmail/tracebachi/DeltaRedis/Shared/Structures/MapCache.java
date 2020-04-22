@@ -25,65 +25,56 @@ import java.util.Map;
 /**
  * Created by Trace Bachi (tracebachi@gmail.com) on 10/18/15.
  */
-public class MapCache<K, V extends Cacheable>
-{
+public class MapCache<K, V extends Cacheable> {
     private final long invalidValueTime;
     private final HashMap<K, V> map = new HashMap<>();
 
-    public MapCache(long invalidValueTime)
-    {
+    public MapCache(long invalidValueTime) {
         this.invalidValueTime = invalidValueTime;
     }
 
-    public synchronized void put(K key, V value)
-    {
-        if(key != null && value != null)
-        {
+    public synchronized void put(K key, V value) {
+        if (key != null && value != null) {
             map.put(key, value);
         }
     }
 
-    public synchronized V get(K key)
-    {
+    public synchronized V get(K key) {
         V value = null;
         long currentTime = System.currentTimeMillis();
 
-        if(key != null)
-        {
+        if (key != null) {
             value = map.get(key);
         }
 
-        if(value != null)
-        {
+        if (value != null) {
             long timeDiff = currentTime - value.getTimeCreatedAt();
             return (timeDiff < invalidValueTime) ? value : null;
+        } else {
+            return null;
         }
-        else { return null; }
     }
 
-    public synchronized V remove(K key)
-    {
-        if(key == null) { return null; }
+    public synchronized V remove(K key) {
+        if (key == null) {
+            return null;
+        }
 
         return map.remove(key);
     }
 
-    public synchronized void clear()
-    {
+    public synchronized void clear() {
         map.clear();
     }
 
-    public synchronized void cleanup()
-    {
+    public synchronized void cleanup() {
         long currentTime = System.currentTimeMillis();
         Iterator<Map.Entry<K, V>> iter = map.entrySet().iterator();
 
-        while(iter.hasNext())
-        {
+        while (iter.hasNext()) {
             Map.Entry<K, V> entry = iter.next();
             long timeDiff = currentTime - entry.getValue().getTimeCreatedAt();
-            if(timeDiff >= invalidValueTime)
-            {
+            if (timeDiff >= invalidValueTime) {
                 iter.remove();
             }
         }
