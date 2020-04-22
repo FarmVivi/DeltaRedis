@@ -38,31 +38,6 @@ public void onMessage(DeltaRedisMessageEvent event) {
 }
 ```
 
-# Finding a Player with the API 
-```java
-public void findZee() {
-  DeltaRedisApi api = DeltaRedisApi.instance();
-  
-  api.findPlayer("Zee", (cachedPlayer) -> {
-    if(cachedPlayer == null) {
-    
-      // :( No Zee found
-      
-    } else {
-      
-      // Found Zee on server!
-      String server = cachedPlayer.getServer();
-      
-      // Send an announcement to everyone on the network
-      api.sendAnnouncementToServer(Servers.SPIGOT, "I found Zee on " + server + "!");
-      
-      // Ask for a prize
-      api.sendMessageToPlayer("Zee", "Do I win?\nWhat's my prize?");
-    }
-  }
-}
-```
-
 # Licence ([GPLv3](http://www.gnu.org/licenses/gpl-3.0.en.html))
 ```
 DeltaRedis - BungeeCord and Spigot plugin for multi-server communication.
