@@ -96,6 +96,14 @@ public class DeltaRedisApi {
     }
 
     /**
+     * @return An unmodifiable set of servers that are part of the
+     * same BungeeCord. This method will retrieve the servers from Redis.
+     */
+    public void refresh() {
+        deltaSender.refresh();
+    }
+
+    /**
      * @param partial Non-null string that is the beginning of a name
      * @return A list of player names that begins with the partial
      * sent to this method.

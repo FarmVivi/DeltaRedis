@@ -94,6 +94,14 @@ public class DeltaRedisApi {
     }
 
     /**
+     * @return An unmodifiable set of servers that are part of the
+     * same BungeeCord. This method will retrieve the servers from Redis.
+     */
+    public void refresh() {
+        deltaSender.refresh();
+    }
+
+    /**
      * Publishes a message built from string message pieces joined by
      * the "/\" (forward-slash, back-slash) to Redis.
      *
