@@ -93,10 +93,10 @@ public class DeltaRedis extends JavaPlugin implements DeltaRedisInterface {
         debugCommand = new DebugCommand(this);
         debugCommand.register();
 
-        getServer().getScheduler().runTaskLaterAsynchronously(this, () -> {
+        getServer().getScheduler().runTaskAsynchronously(this, () -> {
             if (commandSender != null)
                 commandSender.refresh();
-        }, 20);
+        });
     }
 
     @Override
@@ -139,7 +139,7 @@ public class DeltaRedis extends JavaPlugin implements DeltaRedisInterface {
     public void onRedisMessageEvent(String source, String channel, String message) {
         DeltaRedisMessageEvent event = new DeltaRedisMessageEvent(source, channel, message);
 
-        getServer().getScheduler().runTask(this, () -> getServer().getPluginManager().callEvent(event));
+        getServer().getScheduler().runTaskAsynchronously(this, () -> getServer().getPluginManager().callEvent(event));
     }
 
     @Override

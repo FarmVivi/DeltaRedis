@@ -38,7 +38,6 @@ import net.md_5.bungee.config.YamlConfiguration;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Trace Bachi (tracebachi@gmail.com) on 10/18/15.
@@ -102,11 +101,6 @@ public class DeltaRedis extends Plugin implements DeltaRedisInterface {
         debugBungeeCommand.register();
 
         getProxy().getScheduler().runAsync(this, () -> {
-            try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             if (commandSender != null)
                 commandSender.refresh();
         });
@@ -154,7 +148,7 @@ public class DeltaRedis extends Plugin implements DeltaRedisInterface {
     public void onRedisMessageEvent(String source, String channel, String message) {
         DeltaRedisMessageEvent event = new DeltaRedisMessageEvent(source, channel, message);
 
-        getProxy().getPluginManager().callEvent(event);
+        getProxy().getScheduler().runAsync(this, () -> getProxy().getPluginManager().callEvent(event));
     }
 
     @Override
