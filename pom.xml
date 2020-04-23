@@ -29,7 +29,7 @@
         <dependency>
             <groupId>biz.paluch.redis</groupId>
             <artifactId>lettuce</artifactId>
-            <version>4.1.1.Final</version>
+            <version>4.5.0.Final</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
