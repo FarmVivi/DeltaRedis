@@ -91,7 +91,7 @@ public class DeltaRedis extends Plugin implements DeltaRedisInterface {
 
         pubSubListener = new DRPubSubListener(this);
         pubSubConn.addListener(pubSubListener);
-        pubSubConn.sync().subscribe(getBungeeName() + ':' + Servers.BUNGEECORD);
+        pubSubConn.async().subscribe(getBungeeName() + ':' + Servers.BUNGEECORD);
 
         commandSender = new DRCommandSender(commandConn, this);
         commandSender.setup();
