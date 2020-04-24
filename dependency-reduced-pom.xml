@@ -30,12 +30,6 @@
       <id>bungeecord-repo</id>
       <url>https://oss.sonatype.org/content/repositories/snapshots</url>
     </repository>
-    <repository>
-      <snapshots/>
-      <id>sonatype-snapshots</id>
-      <name>Sonatype Snapshot Repository</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </repository>
   </repositories>
   <dependencies>
     <dependency>
