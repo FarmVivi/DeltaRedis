@@ -19,6 +19,7 @@ package com.gmail.tracebachi.DeltaRedis.Shared.Redis;
 import com.gmail.tracebachi.DeltaRedis.Shared.DeltaRedisInterface;
 import com.gmail.tracebachi.DeltaRedis.Shared.Servers;
 import com.gmail.tracebachi.DeltaRedis.Shared.Shutdownable;
+import com.lambdaworks.redis.RedisFuture;
 import com.lambdaworks.redis.api.StatefulRedisConnection;
 
 import java.util.Collections;
@@ -67,13 +68,15 @@ public class DRCommandSender implements Shutdownable {
      * @return An unmodifiable set of servers that are part of the
      * same BungeeCord. This method will retrieve the servers from Redis.
      */
-    public synchronized void refresh() {
+    public void refresh() {
         plugin.debug("DRCommandSender.getServers()");
 
-        Set<String> result = connection.sync().smembers(bungeeName + ":servers");
+        RedisFuture<Set<String>> result = connection.async().smembers(bungeeName + ":servers");
 
-        isBungeeCordOnline = result.remove(Servers.BUNGEECORD);
-        cachedServers = Collections.unmodifiableSet(result);
+        result.whenComplete((strings, throwable) -> {
+            isBungeeCordOnline = strings.remove(Servers.BUNGEECORD);
+            cachedServers = Collections.unmodifiableSet(strings);
+        });
     }
 
     /**
@@ -103,10 +106,10 @@ public class DRCommandSender implements Shutdownable {
      * @param message Message to send.
      * @return The number of servers that received the message.
      */
-    public synchronized long publish(String dest, String channel, String message) {
+    public RedisFuture<Long> publish(String dest, String channel, String message) {
         plugin.debug("DRCommandSender.publish(" + dest + ", " + channel + ", " + message + ")");
 
-        return connection.sync().publish(
+        return connection.async().publish(
                 bungeeName + ':' + dest,
                 serverName + "/\\" + channel + "/\\" + message);
     }
