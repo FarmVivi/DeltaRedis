@@ -67,21 +67,22 @@ public class DeltaRedis extends JavaPlugin implements DeltaRedisInterface {
         Preconditions.checkArgument(getConfig().contains("ServerNameInBungeeCord"),
                 "ServerNameInBungeeCord not specified.");
 
-        ClientOptions.Builder optionBuilder = new ClientOptions.Builder();
-        optionBuilder.autoReconnect(true);
-
-        resources = new DefaultClientResources.Builder()
+        resources = DefaultClientResources.builder()
                 .ioThreadPoolSize(4)
                 .computationThreadPoolSize(4)
                 .build();
 
         client = RedisClient.create(resources, getRedisUri());
-        pubSubConn = client.connectPubSub();
-        standaloneConn = client.connect();
+        client.setOptions(ClientOptions.builder()
+                .autoReconnect(true)
+                .pingBeforeActivateConnection(true)
+                .build());
+        pubSubConn = client.connectPubSub().async().getStatefulConnection();
+        standaloneConn = client.connect().async().getStatefulConnection();
 
         pubSubListener = new DRPubSubListener(this);
         pubSubConn.addListener(pubSubListener);
-        pubSubConn.sync().subscribe(
+        pubSubConn.async().subscribe(
                 getBungeeName() + ':' + getServerName(),
                 getBungeeName() + ':' + Servers.SPIGOT);
 

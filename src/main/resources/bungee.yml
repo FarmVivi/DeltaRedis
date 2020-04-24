@@ -1,4 +1,0 @@
-name: DeltaRedis
-main: com.gmail.tracebachi.DeltaRedis.Bungee.DeltaRedis
-version: ${project.version}
-authors: [Trace Bachi (tracebachi@gmail.com, BigBossZee), FarmVivi]
