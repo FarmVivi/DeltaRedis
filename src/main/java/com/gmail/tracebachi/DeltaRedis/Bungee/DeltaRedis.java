@@ -22,13 +22,13 @@ import com.gmail.tracebachi.DeltaRedis.Shared.Redis.DRCommandSender;
 import com.gmail.tracebachi.DeltaRedis.Shared.Redis.DRPubSubListener;
 import com.gmail.tracebachi.DeltaRedis.Shared.Servers;
 import com.google.common.base.Preconditions;
-import com.lambdaworks.redis.ClientOptions;
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisURI;
-import com.lambdaworks.redis.api.StatefulRedisConnection;
-import com.lambdaworks.redis.pubsub.StatefulRedisPubSubConnection;
-import com.lambdaworks.redis.resource.ClientResources;
-import com.lambdaworks.redis.resource.DefaultClientResources;
+import io.lettuce.core.ClientOptions;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import io.lettuce.core.resource.ClientResources;
+import io.lettuce.core.resource.DefaultClientResources;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
@@ -45,6 +45,7 @@ import java.util.Map;
 public class DeltaRedis extends Plugin implements DeltaRedisInterface {
     private boolean debugEnabled;
     private Configuration config;
+
     private ClientResources resources;
     private RedisClient client;
     private DRPubSubListener pubSubListener;
@@ -75,18 +76,18 @@ public class DeltaRedis extends Plugin implements DeltaRedisInterface {
                 config.get("BungeeName") != null,
                 "BungeeName not specified.");
 
-        ClientOptions.Builder optionBuilder = new ClientOptions.Builder();
-        optionBuilder.autoReconnect(true);
-
-        resources = new DefaultClientResources.Builder()
+        resources = DefaultClientResources.builder()
                 .ioThreadPoolSize(4)
                 .computationThreadPoolSize(4)
                 .build();
 
         client = RedisClient.create(resources, getRedisUri(config));
-        client.setOptions(optionBuilder.build());
-        pubSubConn = client.connectPubSub();
-        commandConn = client.connect();
+        client.setOptions(ClientOptions.builder()
+                .autoReconnect(true)
+                .pingBeforeActivateConnection(true)
+                .build());
+        pubSubConn = client.connectPubSub().async().getStatefulConnection();
+        commandConn = client.connect().async().getStatefulConnection();
 
         pubSubListener = new DRPubSubListener(this);
         pubSubConn.addListener(pubSubListener);

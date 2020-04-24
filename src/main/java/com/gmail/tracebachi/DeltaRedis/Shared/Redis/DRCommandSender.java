@@ -19,7 +19,7 @@ package com.gmail.tracebachi.DeltaRedis.Shared.Redis;
 import com.gmail.tracebachi.DeltaRedis.Shared.DeltaRedisInterface;
 import com.gmail.tracebachi.DeltaRedis.Shared.Servers;
 import com.gmail.tracebachi.DeltaRedis.Shared.Shutdownable;
-import com.lambdaworks.redis.api.StatefulRedisConnection;
+import io.lettuce.core.api.StatefulRedisConnection;
 
 import java.util.Collections;
 import java.util.Set;
