@@ -106,10 +106,28 @@ public class DRCommandSender implements Shutdownable {
      * @param message Message to send.
      * @return The number of servers that received the message.
      */
-    public RedisFuture<Long> publish(String dest, String channel, String message) {
+    public RedisFuture<Long> publishASync(String dest, String channel, String message) {
         plugin.debug("DRCommandSender.publish(" + dest + ", " + channel + ", " + message + ")");
 
         return connection.async().publish(
+                bungeeName + ':' + dest,
+                serverName + "/\\" + channel + "/\\" + message);
+    }
+
+    /**
+     * Publishes a string message using Redis PubSub. The destination can
+     * also be one of the special values {@link Servers#BUNGEECORD}
+     * or {@link Servers#SPIGOT}.
+     *
+     * @param dest    Server name that message should go to.
+     * @param channel Custom channel name for the message.
+     * @param message Message to send.
+     * @return The number of servers that received the message.
+     */
+    public Long publishSync(String dest, String channel, String message) {
+        plugin.debug("DRCommandSender.publish(" + dest + ", " + channel + ", " + message + ")");
+
+        return connection.sync().publish(
                 bungeeName + ':' + dest,
                 serverName + "/\\" + channel + "/\\" + message);
     }
