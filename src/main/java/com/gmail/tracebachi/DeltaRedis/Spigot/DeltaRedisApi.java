@@ -131,10 +131,24 @@ public class DeltaRedisApi {
      * @param channel       Channel of the message.
      * @param messagePieces The parts of the message.
      */
-    public void publish(String destination, String channel, String... messagePieces) {
+    public void publishASync(String destination, String channel, String... messagePieces) {
         String joinedMessage = String.join("/\\", messagePieces);
 
-        publish(destination, channel, joinedMessage);
+        publishASync(destination, channel, joinedMessage);
+    }
+
+    /**
+     * Publishes a message built from string message pieces joined by
+     * the "/\" (forward-slash, back-slash) to Redis.
+     *
+     * @param destination   Server to send message to.
+     * @param channel       Channel of the message.
+     * @param messagePieces The parts of the message.
+     */
+    public void publishSync(String destination, String channel, String... messagePieces) {
+        String joinedMessage = String.join("/\\", messagePieces);
+
+        publishSync(destination, channel, joinedMessage);
     }
 
     /**
@@ -144,7 +158,7 @@ public class DeltaRedisApi {
      * @param channel    Channel of the message.
      * @param message    The actual message.
      */
-    public void publish(String destServer, String channel, String message) {
+    public void publishASync(String destServer, String channel, String message) {
         Preconditions.checkNotNull(destServer, "DestServer was null.");
         Preconditions.checkNotNull(channel, "Channel was null.");
         Preconditions.checkNotNull(message, "Message was null.");
@@ -156,9 +170,29 @@ public class DeltaRedisApi {
 
         Bukkit.getScheduler().runTaskAsynchronously(
                 plugin,
-                () -> deltaSender.publish(
+                () -> deltaSender.publishASync(
                         destServer,
                         channel,
                         message));
+    }
+
+    /**
+     * Publishes a message to Redis.
+     *
+     * @param destServer Server to send message to.
+     * @param channel    Channel of the message.
+     * @param message    The actual message.
+     */
+    public void publishSync(String destServer, String channel, String message) {
+        Preconditions.checkNotNull(destServer, "DestServer was null.");
+        Preconditions.checkNotNull(channel, "Channel was null.");
+        Preconditions.checkNotNull(message, "Message was null.");
+
+        if (plugin.getServerName().equals(destServer)) {
+            plugin.onRedisMessageEvent(destServer, channel, message);
+            return;
+        }
+
+        deltaSender.publishSync(destServer, channel, message);
     }
 }
