@@ -145,15 +145,15 @@ public class DeltaRedis extends JavaPlugin implements DeltaRedisInterface {
 
     @Override
     public String getBungeeName() {
-        String configName = getConfig().getString("BungeeName");
-        if (configName.contains("minijeux_") && !configName.contains("_dev_"))
-            configName = configName + "_" + (Math.abs(getServer().getPort()) % 10);
-        return configName;
+        return getConfig().getString("BungeeName");
     }
 
     @Override
     public String getServerName() {
-        return getConfig().getString("ServerNameInBungeeCord");
+        String configName = getConfig().getString("ServerNameInBungeeCord");
+        if (configName.contains("minijeux_") && !configName.contains("_dev_"))
+            configName = configName + "_" + (Math.abs(getServer().getPort()) % 10);
+        return configName;
     }
 
     @Override
