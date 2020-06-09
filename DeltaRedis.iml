@@ -20,6 +20,12 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Maven: biz.paluch.redis:lettuce:4.2.2.Final" level="project" />
+    <orderEntry type="library" name="Maven: io.netty:netty-common:4.0.40.Final" level="project" />
+    <orderEntry type="library" name="Maven: io.netty:netty-transport:4.0.40.Final" level="project" />
+    <orderEntry type="library" name="Maven: io.netty:netty-buffer:4.0.40.Final" level="project" />
+    <orderEntry type="library" name="Maven: io.netty:netty-handler:4.0.40.Final" level="project" />
+    <orderEntry type="library" name="Maven: io.netty:netty-codec:4.0.40.Final" level="project" />
+    <orderEntry type="library" name="Maven: biz.paluch.redis:lettuce:4.2.2.Final" level="project" />
     <orderEntry type="library" name="Maven: io.reactivex:rxjava:1.1.9" level="project" />
     <orderEntry type="library" name="Maven: io.netty:netty-common:4.0.40.Final" level="project" />
     <orderEntry type="library" name="Maven: io.netty:netty-transport:4.0.40.Final" level="project" />
