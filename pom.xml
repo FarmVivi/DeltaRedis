@@ -23,9 +23,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>biz.paluch.redis</groupId>
-            <artifactId>lettuce</artifactId>
-            <version>4.2.2.Final</version>
+            <groupId>io.lettuce</groupId>
+            <artifactId>lettuce-core</artifactId>
+            <version>5.3.1.RELEASE</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

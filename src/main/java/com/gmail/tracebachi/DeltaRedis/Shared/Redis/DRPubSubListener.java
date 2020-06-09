@@ -19,7 +19,7 @@ package com.gmail.tracebachi.DeltaRedis.Shared.Redis;
 import com.gmail.tracebachi.DeltaRedis.Shared.DeltaRedisInterface;
 import com.gmail.tracebachi.DeltaRedis.Shared.Shutdownable;
 import com.gmail.tracebachi.DeltaRedis.Shared.SplitPatterns;
-import com.lambdaworks.redis.pubsub.RedisPubSubListener;
+import io.lettuce.core.pubsub.RedisPubSubListener;
 
 /**
  * Created by Trace Bachi (tracebachi@gmail.com) on 10/18/15.

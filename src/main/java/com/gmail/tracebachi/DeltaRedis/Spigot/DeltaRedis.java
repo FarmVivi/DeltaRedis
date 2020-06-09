@@ -22,13 +22,13 @@ import com.gmail.tracebachi.DeltaRedis.Shared.Redis.DRPubSubListener;
 import com.gmail.tracebachi.DeltaRedis.Shared.Servers;
 import com.gmail.tracebachi.DeltaRedis.Spigot.Commands.DebugCommand;
 import com.google.common.base.Preconditions;
-import com.lambdaworks.redis.ClientOptions;
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisURI;
-import com.lambdaworks.redis.api.StatefulRedisConnection;
-import com.lambdaworks.redis.pubsub.StatefulRedisPubSubConnection;
-import com.lambdaworks.redis.resource.ClientResources;
-import com.lambdaworks.redis.resource.DefaultClientResources;
+import io.lettuce.core.ClientOptions;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import io.lettuce.core.resource.ClientResources;
+import io.lettuce.core.resource.DefaultClientResources;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -140,7 +140,7 @@ public class DeltaRedis extends JavaPlugin implements DeltaRedisInterface {
     public void onRedisMessageEvent(String source, String channel, String message) {
         DeltaRedisMessageEvent event = new DeltaRedisMessageEvent(source, channel, message);
 
-        getServer().getScheduler().runTaskAsynchronously(this, () -> getServer().getPluginManager().callEvent(event));
+        getServer().getScheduler().runTask(this, () -> getServer().getPluginManager().callEvent(event));
     }
 
     @Override
@@ -151,7 +151,7 @@ public class DeltaRedis extends JavaPlugin implements DeltaRedisInterface {
     @Override
     public String getServerName() {
         String configName = getConfig().getString("ServerNameInBungeeCord");
-        if (configName.contains("minijeux_") && !configName.contains("_dev_"))
+        if (configName != null && configName.contains("minijeux_") && !configName.contains("_dev_"))
             configName = configName + "_" + (Math.abs(getServer().getPort()) % 10);
         return configName;
     }
